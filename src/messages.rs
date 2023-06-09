@@ -156,7 +156,7 @@ impl OriginatingVASP {
                 geographic_address: types::ZeroToN::None,
                 customer_identification: None,
                 national_identification: Some(NationalIdentification {
-                    national_identifier: lei.to_string().as_str().try_into()?,
+                    national_identifier: lei.to_string().as_str().try_into().unwrap(),
                     national_identifier_type: NationalIdentifierTypeCode::Leix,
                     country_of_issue: None,
                     registration_authority: None,
@@ -595,7 +595,7 @@ impl LegalPerson {
             geographic_address: Some(address).into(),
             customer_identification: Some(customer_identification.try_into()?),
             national_identification: Some(NationalIdentification {
-                national_identifier: lei.to_string().as_str().try_into()?,
+                national_identifier: lei.to_string().as_str().try_into().unwrap(),
                 national_identifier_type: NationalIdentifierTypeCode::Leix,
                 country_of_issue: None,
                 registration_authority: None,
