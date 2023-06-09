@@ -2,7 +2,7 @@ use crate::messages::ValidationError;
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(into = "Vec<T>", try_from = "Vec<T>")]
-pub(crate) struct NonEmptyVec<T: Clone> {
+pub struct NonEmptyVec<T: Clone> {
     inner: Vec<T>,
 }
 

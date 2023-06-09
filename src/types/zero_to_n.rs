@@ -20,7 +20,7 @@
 /// applied to the root deserialization object.
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
-pub(crate) enum ZeroToN<T> {
+pub enum ZeroToN<T> {
     #[default]
     None,
     One(T),

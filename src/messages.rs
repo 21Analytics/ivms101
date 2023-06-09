@@ -5,15 +5,15 @@ use crate::types;
 #[serde(deny_unknown_fields)]
 pub struct IVMS101 {
     #[serde(skip_serializing_if = "Option::is_none")]
-    originator: Option<Originator>,
+    pub originator: Option<Originator>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    beneficiary: Option<Beneficiary>,
+    pub beneficiary: Option<Beneficiary>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "originatingVASP")]
-    originating_vasp: Option<OriginatingVASP>,
+    pub originating_vasp: Option<OriginatingVASP>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "beneficiaryVASP")]
-    beneficiary_vasp: Option<BeneficiaryVASP>,
+    pub beneficiary_vasp: Option<BeneficiaryVASP>,
 }
 
 impl Validatable for IVMS101 {
@@ -38,9 +38,9 @@ impl Validatable for IVMS101 {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct Originator {
-    originator_persons: types::OneToN<Person>,
+    pub originator_persons: types::OneToN<Person>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    account_number: types::ZeroToN<types::StringMax100>,
+    pub account_number: types::ZeroToN<types::StringMax100>,
 }
 
 impl Validatable for Originator {
@@ -69,40 +69,15 @@ impl Originator {
             account_number: None.into(),
         })
     }
-
-    #[must_use]
-    pub fn first_name(&self) -> Option<String> {
-        self.originator_persons.first().first_name()
-    }
-
-    #[must_use]
-    pub fn last_name(&self) -> String {
-        self.originator_persons.first().last_name()
-    }
-
-    #[must_use]
-    pub fn address(&self) -> Option<&Address> {
-        self.originator_persons.first().address()
-    }
-
-    #[must_use]
-    pub fn customer_identification(&self) -> Option<String> {
-        self.originator_persons.first().customer_identification()
-    }
-
-    #[must_use]
-    pub fn originator_person(&self) -> &Person {
-        self.originator_persons.first()
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct Beneficiary {
-    beneficiary_persons: types::OneToN<Person>,
+    pub beneficiary_persons: types::OneToN<Person>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    account_number: types::ZeroToN<types::StringMax100>,
+    pub account_number: types::ZeroToN<types::StringMax100>,
 }
 
 impl Validatable for Beneficiary {
@@ -121,23 +96,13 @@ impl Beneficiary {
             account_number: account_number.map(TryInto::try_into).transpose()?.into(),
         })
     }
-
-    #[must_use]
-    pub fn first_name(&self) -> Option<String> {
-        self.beneficiary_persons.first().first_name()
-    }
-
-    #[must_use]
-    pub fn last_name(&self) -> String {
-        self.beneficiary_persons.first().last_name()
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct OriginatingVASP {
     #[serde(rename = "originatingVASP")]
-    originating_vasp: Person,
+    pub originating_vasp: Person,
 }
 
 impl OriginatingVASP {
@@ -179,10 +144,10 @@ impl Validatable for OriginatingVASP {
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(deny_unknown_fields)]
-struct BeneficiaryVASP {
+pub struct BeneficiaryVASP {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "beneficiaryVASP")]
-    beneficiary_vasp: Option<Person>,
+    pub beneficiary_vasp: Option<Person>,
 }
 
 impl Validatable for BeneficiaryVASP {
@@ -204,14 +169,14 @@ pub enum Person {
 
 impl Person {
     #[must_use]
-    fn first_name(&self) -> Option<String> {
+    pub fn first_name(&self) -> Option<String> {
         match self {
             Self::NaturalPerson(p) => p.first_name(),
             Self::LegalPerson(_p) => None,
         }
     }
     #[must_use]
-    fn last_name(&self) -> String {
+    pub fn last_name(&self) -> String {
         match self {
             Self::NaturalPerson(p) => p.last_name(),
             Self::LegalPerson(p) => p.name(),
@@ -219,7 +184,7 @@ impl Person {
     }
 
     #[must_use]
-    fn address(&self) -> Option<&Address> {
+    pub fn address(&self) -> Option<&Address> {
         match self {
             Self::NaturalPerson(p) => p.address(),
             Self::LegalPerson(p) => p.address(),
@@ -227,7 +192,7 @@ impl Person {
     }
 
     #[must_use]
-    fn customer_identification(&self) -> Option<String> {
+    pub fn customer_identification(&self) -> Option<String> {
         match self {
             Self::NaturalPerson(p) => p.customer_identification.clone().map(|s| s.to_string()),
             Self::LegalPerson(p) => p.customer_identification.clone().map(|s| s.to_string()),
@@ -255,17 +220,17 @@ impl Validatable for Person {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct NaturalPerson {
-    name: types::OneToN<NaturalPersonName>,
+    pub name: types::OneToN<NaturalPersonName>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    geographic_address: types::ZeroToN<Address>,
+    pub geographic_address: types::ZeroToN<Address>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    national_identification: Option<NationalIdentification>,
+    pub national_identification: Option<NationalIdentification>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    customer_identification: Option<types::StringMax50>,
+    pub customer_identification: Option<types::StringMax50>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    date_and_place_of_birth: Option<DateAndPlaceOfBirth>,
+    pub date_and_place_of_birth: Option<DateAndPlaceOfBirth>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    country_of_residence: Option<CountryCode>,
+    pub country_of_residence: Option<CountryCode>,
 }
 
 impl NaturalPerson {
@@ -342,12 +307,12 @@ impl Validatable for NaturalPerson {
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct NaturalPersonName {
-    name_identifier: types::OneToN<NaturalPersonNameID>,
+pub struct NaturalPersonName {
+    pub name_identifier: types::OneToN<NaturalPersonNameID>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    local_name_identifier: types::ZeroToN<LocalNaturalPersonNameID>,
+    pub local_name_identifier: types::ZeroToN<LocalNaturalPersonNameID>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    phonetic_name_identifier: types::ZeroToN<LocalNaturalPersonNameID>,
+    pub phonetic_name_identifier: types::ZeroToN<LocalNaturalPersonNameID>,
 }
 
 impl Validatable for NaturalPersonName {
@@ -367,55 +332,55 @@ impl Validatable for NaturalPersonName {
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct NaturalPersonNameID {
-    primary_identifier: types::StringMax100,
+pub struct NaturalPersonNameID {
+    pub primary_identifier: types::StringMax100,
     #[serde(skip_serializing_if = "Option::is_none")]
-    secondary_identifier: Option<types::StringMax100>,
-    name_identifier_type: NaturalPersonNameTypeCode,
+    pub secondary_identifier: Option<types::StringMax100>,
+    pub name_identifier_type: NaturalPersonNameTypeCode,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct LocalNaturalPersonNameID {
-    primary_identifier: types::StringMax100,
+pub struct LocalNaturalPersonNameID {
+    pub primary_identifier: types::StringMax100,
     #[serde(skip_serializing_if = "Option::is_none")]
-    secondary_identifier: Option<types::StringMax100>,
-    name_identifier_type: NaturalPersonNameTypeCode,
+    pub secondary_identifier: Option<types::StringMax100>,
+    pub name_identifier_type: NaturalPersonNameTypeCode,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct Address {
-    address_type: AddressTypeCode,
+    pub address_type: AddressTypeCode,
     #[serde(skip_serializing_if = "Option::is_none")]
-    department: Option<types::StringMax50>,
+    pub department: Option<types::StringMax50>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    sub_department: Option<types::StringMax70>,
+    pub sub_department: Option<types::StringMax70>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub street_name: Option<types::StringMax70>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub building_number: Option<types::StringMax16>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    building_name: Option<types::StringMax35>,
+    pub building_name: Option<types::StringMax35>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    floor: Option<types::StringMax70>,
+    pub floor: Option<types::StringMax70>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    post_box: Option<types::StringMax16>,
+    pub post_box: Option<types::StringMax16>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    room: Option<types::StringMax70>,
+    pub room: Option<types::StringMax70>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub post_code: Option<types::StringMax16>,
     pub town_name: types::StringMax35,
     #[serde(skip_serializing_if = "Option::is_none")]
-    town_location_name: Option<types::StringMax35>,
+    pub town_location_name: Option<types::StringMax35>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    district_name: Option<types::StringMax35>,
+    pub district_name: Option<types::StringMax35>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    country_sub_division: Option<types::StringMax35>,
+    pub country_sub_division: Option<types::StringMax35>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    address_line: types::ZeroToN<types::StringMax70>,
+    pub address_line: types::ZeroToN<types::StringMax70>,
     pub country: CountryCode,
 }
 
@@ -525,9 +490,9 @@ impl Validatable for Address {
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct DateAndPlaceOfBirth {
-    date_of_birth: Date,
-    place_of_birth: types::StringMax70,
+pub struct DateAndPlaceOfBirth {
+    pub date_of_birth: Date,
+    pub place_of_birth: types::StringMax70,
 }
 
 impl Validatable for DateAndPlaceOfBirth {
@@ -542,13 +507,13 @@ impl Validatable for DateAndPlaceOfBirth {
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct NationalIdentification {
-    national_identifier: types::StringMax35,
-    national_identifier_type: NationalIdentifierTypeCode,
+pub struct NationalIdentification {
+    pub national_identifier: types::StringMax35,
+    pub national_identifier_type: NationalIdentifierTypeCode,
     #[serde(skip_serializing_if = "Option::is_none")]
-    country_of_issue: Option<CountryCode>,
+    pub country_of_issue: Option<CountryCode>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    registration_authority: Option<RegistrationAuthority>,
+    pub registration_authority: Option<RegistrationAuthority>,
 }
 
 impl Validatable for NationalIdentification {
@@ -564,15 +529,15 @@ impl Validatable for NationalIdentification {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct LegalPerson {
-    name: LegalPersonName,
+    pub name: LegalPersonName,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    geographic_address: types::ZeroToN<Address>,
+    pub geographic_address: types::ZeroToN<Address>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    customer_identification: Option<types::StringMax50>,
+    pub customer_identification: Option<types::StringMax50>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    national_identification: Option<NationalIdentification>,
+    pub national_identification: Option<NationalIdentification>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    country_of_registration: Option<CountryCode>,
+    pub country_of_registration: Option<CountryCode>,
 }
 
 impl LegalPerson {
@@ -692,12 +657,12 @@ impl Validatable for LegalPerson {
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct LegalPersonName {
-    name_identifier: types::OneToN<LegalPersonNameID>,
+pub struct LegalPersonName {
+    pub name_identifier: types::OneToN<LegalPersonNameID>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    local_name_identifier: types::ZeroToN<LocalLegalPersonNameID>,
+    pub local_name_identifier: types::ZeroToN<LocalLegalPersonNameID>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    phonetic_name_identifier: types::ZeroToN<LocalLegalPersonNameID>,
+    pub phonetic_name_identifier: types::ZeroToN<LocalLegalPersonNameID>,
 }
 
 impl Validatable for LegalPersonName {
@@ -717,25 +682,25 @@ impl Validatable for LegalPersonName {
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct LegalPersonNameID {
-    legal_person_name: types::StringMax100,
-    legal_person_name_identifier_type: LegalPersonNameTypeCode,
+pub struct LegalPersonNameID {
+    pub legal_person_name: types::StringMax100,
+    pub legal_person_name_identifier_type: LegalPersonNameTypeCode,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct LocalLegalPersonNameID {
-    legal_person_name: types::StringMax100,
-    legal_person_name_identifier_type: LegalPersonNameTypeCode,
+pub struct LocalLegalPersonNameID {
+    pub legal_person_name: types::StringMax100,
+    pub legal_person_name_identifier_type: LegalPersonNameTypeCode,
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-struct IntermediaryVASP {
-    intermediary_vasp: Person,
-    sequence: u32,
+pub struct IntermediaryVASP {
+    pub intermediary_vasp: Person,
+    pub sequence: u32,
 }
 
 // Validating C12 (sequentialIntegrity) requires surrounding context
@@ -748,7 +713,7 @@ impl Validatable for IntermediaryVASP {
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-enum NaturalPersonNameTypeCode {
+pub enum NaturalPersonNameTypeCode {
     Alia, // Alias name
     Birt, // Name at birth
     Maid, // Maiden name
@@ -758,7 +723,7 @@ enum NaturalPersonNameTypeCode {
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-enum LegalPersonNameTypeCode {
+pub enum LegalPersonNameTypeCode {
     Legl, // Legal name
     Shrt, // Short name
     Trad, // Trading name
@@ -768,7 +733,7 @@ type Date = chrono::NaiveDate;
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-enum AddressTypeCode {
+pub enum AddressTypeCode {
     Home, // Residential
     Bizz, // Business
     Geog, // Geographic
@@ -776,7 +741,7 @@ enum AddressTypeCode {
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "UPPERCASE")]
-enum NationalIdentifierTypeCode {
+pub enum NationalIdentifierTypeCode {
     Arnu, // Alien registration number
     Ccpt, // Passport number
     Raid, // Registration authority identifier

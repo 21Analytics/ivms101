@@ -4,13 +4,13 @@ use crate::types::non_empty_vec::NonEmptyVec;
 /// field during deserialization.
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
-pub(crate) enum OneToN<T: Clone> {
+pub enum OneToN<T: Clone> {
     One(T),
     N(NonEmptyVec<T>),
 }
 
 impl<T: Clone> OneToN<T> {
-    pub(crate) fn first(&self) -> &T {
+    pub fn first(&self) -> &T {
         match self {
             OneToN::One(t) => t,
             OneToN::N(nev_t) => nev_t.first(),
