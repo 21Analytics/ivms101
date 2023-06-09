@@ -5,6 +5,12 @@ authors = ["21 Analytics <info@21analytics.ch>"]
 edition = "2021"
 license = "AGPL-3.0-only"
 rust-version = "1.70"
+description = "A library to handle Intervasp Messaging Standard Payloads"
+documentation = "https://docs.rs/ivms101/"
+homepage = "https://21analytics.ch"
+repository = "https://gitlab.com/21analytics/ivms101"
+keywords = ["ivms101", "travel-rule"]
+categories = ["finance"]
 
 [lib]
 doctest = false
