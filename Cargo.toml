@@ -3,6 +3,7 @@ name = "ivms101"
 version = "0.1.0"
 authors = ["21Analytics <info@21analytics.ch>"]
 edition = "2021"
+license = "AGPL-3.0-only"
 rust-version = "1.70"
 
 [lib]
