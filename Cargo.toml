@@ -1,0 +1,20 @@
+[package]
+name = "ivms101"
+version = "0.1.0"
+authors = ["21Analytics <info@21analytics.ch>"]
+edition = "2021"
+rust-version = "1.70"
+
+[lib]
+doctest = false
+
+[dependencies]
+chrono = { version = "0.4.24", default-features = false, features = [ "serde" ] }
+iso3166-1 = "1.0"
+lei = { path = "../lei", package = "leim" }
+serde = { version = "1.0.163", features = [ "derive" ] }
+thiserror = "1.0.40"
+
+[dev-dependencies]
+serde_json = "1.0.96"
+serde_test = "1.0.163"
