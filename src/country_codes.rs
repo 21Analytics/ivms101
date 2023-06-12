@@ -1,3 +1,35 @@
+/// A ISO 3166-1 Alpha-2 country code.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Deserialize)]
+#[serde(try_from = "&str")]
+pub struct CountryCode {
+    inner: String,
+}
+
+impl serde::Serialize for CountryCode {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        self.inner.serialize(serializer)
+    }
+}
+
+impl TryFrom<&str> for CountryCode {
+    type Error = crate::messages::Error;
+    fn try_from(from: &str) -> Result<Self, Self::Error> {
+        // XX represents an unknown state or entity
+        // https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+        if iso3166_1::alpha2(from).is_none() && from != "XX" {
+            return Err(crate::messages::Error::InvalidCountryCode(from.to_string()));
+        }
+        Ok(Self { inner: from.into() })
+    }
+}
+
+impl CountryCode {
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.inner
+    }
+}
+
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub fn country(country_code: &str) -> &str {
@@ -260,3 +292,37 @@ pub fn country(country_code: &str) -> &str {
 
 static COUNTRY_CODES: std::sync::OnceLock<std::collections::HashMap<&'static str, &'static str>> =
     std::sync::OnceLock::new();
+
+#[cfg(test)]
+mod tests {
+    use super::CountryCode;
+    use serde_test::{assert_tokens, Token};
+
+    #[test]
+    fn test_country_code() {
+        let de = CountryCode { inner: "DE".into() };
+        assert_tokens(&de, &[Token::BorrowedStr("DE")]);
+    }
+
+    #[test]
+    fn test_country_code_unknown_placeholder() {
+        CountryCode::try_from("XX").unwrap();
+    }
+
+    #[test]
+    fn test_country_code_invalid_length() {
+        serde_test::assert_de_tokens_error::<CountryCode>(
+            &[Token::BorrowedStr("C")],
+            "invalid country code: C",
+        );
+        serde_test::assert_de_tokens_error::<CountryCode>(
+            &[Token::BorrowedStr("CHE")],
+            "invalid country code: CHE",
+        );
+    }
+
+    #[test]
+    fn test_invalid_country_code() {
+        assert!(CountryCode::try_from("RR").is_err());
+    }
+}

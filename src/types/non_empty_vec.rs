@@ -1,4 +1,4 @@
-use crate::messages::ValidationError;
+use crate::messages::Error;
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(into = "Vec<T>", try_from = "Vec<T>")]
@@ -10,8 +10,8 @@ impl<T> TryFrom<Vec<T>> for NonEmptyVec<T>
 where
     T: Clone,
 {
-    type Error = ValidationError;
-    fn try_from(from: Vec<T>) -> Result<Self, ValidationError> {
+    type Error = Error;
+    fn try_from(from: Vec<T>) -> Result<Self, Error> {
         match from.len() {
             0 => Err("Vector must not be empty".into()),
             _ => Ok(Self { inner: from }),

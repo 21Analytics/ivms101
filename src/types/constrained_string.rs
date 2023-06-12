@@ -8,8 +8,8 @@ macro_rules! constrained_string {
         }
 
         impl TryFrom<&str> for $newtype {
-            type Error = ValidationError;
-            fn try_from(from: &str) -> Result<Self, ValidationError> {
+            type Error = Error;
+            fn try_from(from: &str) -> Result<Self, Error> {
                 if $len_check(from.len()) {
                     Ok(Self { inner: from.into() })
                 } else {
@@ -47,7 +47,7 @@ macro_rules! constrained_string {
 
 #[cfg(test)]
 mod tests {
-    use crate::messages::ValidationError;
+    use crate::messages::Error;
 
     #[test]
     fn test_max_string() {

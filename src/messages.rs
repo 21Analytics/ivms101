@@ -1,4 +1,5 @@
 use crate::types;
+use crate::CountryCode;
 use lei::registration_authority::RegistrationAuthority;
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -18,7 +19,7 @@ pub struct IVMS101 {
 }
 
 impl Validatable for IVMS101 {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         if let Some(o) = &self.originator {
             o.validate()?;
         }
@@ -45,7 +46,7 @@ pub struct Originator {
 }
 
 impl Validatable for Originator {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         for person in self.originator_persons.clone() {
             if let Person::NaturalPerson(np) = &person {
                 if np.geographic_address.is_empty()
@@ -64,7 +65,7 @@ impl Validatable for Originator {
 }
 
 impl Originator {
-    pub fn new(person: Person) -> Result<Self, ValidationError> {
+    pub fn new(person: Person) -> Result<Self, Error> {
         Ok(Self {
             originator_persons: person.into(),
             account_number: None.into(),
@@ -82,7 +83,7 @@ pub struct Beneficiary {
 }
 
 impl Validatable for Beneficiary {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         for person in self.beneficiary_persons.clone() {
             person.validate()?;
         }
@@ -91,7 +92,7 @@ impl Validatable for Beneficiary {
 }
 
 impl Beneficiary {
-    pub fn new(person: Person, account_number: Option<&str>) -> Result<Self, ValidationError> {
+    pub fn new(person: Person, account_number: Option<&str>) -> Result<Self, Error> {
         Ok(Self {
             beneficiary_persons: person.into(),
             account_number: account_number.map(TryInto::try_into).transpose()?.into(),
@@ -107,7 +108,7 @@ pub struct OriginatingVASP {
 }
 
 impl OriginatingVASP {
-    pub fn new(name: &str, lei: &lei::LEI) -> Result<Self, ValidationError> {
+    pub fn new(name: &str, lei: &lei::LEI) -> Result<Self, Error> {
         Ok(Self {
             originating_vasp: Person::LegalPerson(LegalPerson {
                 name: LegalPersonName {
@@ -138,7 +139,7 @@ impl OriginatingVASP {
 }
 
 impl Validatable for OriginatingVASP {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         self.originating_vasp.validate()
     }
 }
@@ -152,7 +153,7 @@ pub struct BeneficiaryVASP {
 }
 
 impl Validatable for BeneficiaryVASP {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         match &self.beneficiary_vasp {
             None => Ok(()),
             Some(p) => p.validate(),
@@ -209,7 +210,7 @@ impl Person {
 }
 
 impl Validatable for Person {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         match self {
             Person::NaturalPerson(p) => p.validate(),
             Person::LegalPerson(p) => p.validate(),
@@ -240,7 +241,7 @@ impl NaturalPerson {
         last_name: &str,
         customer_identification: Option<&str>,
         address: Option<Address>,
-    ) -> Result<Self, ValidationError> {
+    ) -> Result<Self, Error> {
         Ok(Self {
             name: NaturalPersonName {
                 name_identifier: NaturalPersonNameID {
@@ -291,7 +292,7 @@ impl NaturalPerson {
 }
 
 impl Validatable for NaturalPerson {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         self.name
             .clone()
             .into_iter()
@@ -317,7 +318,7 @@ pub struct NaturalPersonName {
 }
 
 impl Validatable for NaturalPersonName {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         let has_legl = self
             .name_identifier
             .clone()
@@ -383,7 +384,7 @@ impl Address {
         postal_code: &str,
         town: &str,
         country: &str,
-    ) -> Result<Self, ValidationError> {
+    ) -> Result<Self, Error> {
         Ok(Self {
             address_type: AddressTypeCode::Home,
             department: None,
@@ -467,7 +468,7 @@ pub fn format_address(
 }
 
 impl Validatable for Address {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         if self.address_line.is_empty()
             && (self.street_name.is_none()
                 || (self.building_name.is_none() && self.building_number.is_none()))
@@ -487,7 +488,7 @@ pub struct DateAndPlaceOfBirth {
 }
 
 impl Validatable for DateAndPlaceOfBirth {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         if self.date_of_birth >= chrono::prelude::Utc::now().date_naive() {
             return Err("Date of birth must be in the past (IVMS101 C2)".into());
         }
@@ -528,7 +529,7 @@ impl LegalPerson {
         customer_identification: &str,
         address: Address,
         lei: &lei::LEI,
-    ) -> Result<Self, ValidationError> {
+    ) -> Result<Self, Error> {
         Ok(Self {
             name: LegalPersonName {
                 name_identifier: LegalPersonNameID {
@@ -576,7 +577,7 @@ impl LegalPerson {
 }
 
 impl Validatable for LegalPerson {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         let has_geog = self
             .geographic_address
             .clone()
@@ -648,7 +649,7 @@ pub struct LegalPersonName {
 }
 
 impl Validatable for LegalPersonName {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         let has_legl = self
             .name_identifier
             .clone()
@@ -679,7 +680,7 @@ pub struct IntermediaryVASP {
 
 // Validating C12 (sequentialIntegrity) requires surrounding context
 impl Validatable for IntermediaryVASP {
-    fn validate(&self) -> Result<(), ValidationError> {
+    fn validate(&self) -> Result<(), Error> {
         self.intermediary_vasp.validate()?;
         Ok(())
     }
@@ -729,31 +730,20 @@ pub enum NationalIdentifierTypeCode {
 }
 
 pub trait Validatable {
-    fn validate(&self) -> Result<(), ValidationError>;
-}
-
-crate::constrained_string!(CountryCode, |l| l == 2);
-
-impl Validatable for CountryCode {
-    fn validate(&self) -> Result<(), ValidationError> {
-        // represents an "unknown State or entity"
-        if self.to_string() == "XX" {
-            return Ok(());
-        }
-        match iso3166_1::alpha2(&self.to_string()) {
-            Some(_) => Ok(()),
-            None => Err("Invalid country code (IVMS101 C3)".into()),
-        }
-    }
+    fn validate(&self) -> Result<(), Error>;
 }
 
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
-#[error("Validation error: {0}")]
-pub struct ValidationError(String);
+pub enum Error {
+    #[error("Validation error: {0}")]
+    ValidationError(String),
+    #[error("invalid country code: {0}")]
+    InvalidCountryCode(String),
+}
 
-impl From<&str> for ValidationError {
+impl From<&str> for Error {
     fn from(value: &str) -> Self {
-        Self(value.to_owned())
+        Self::ValidationError(value.to_owned())
     }
 }
 
@@ -907,37 +897,6 @@ mod tests {
                 variant: "ARNU",
             }],
         );
-    }
-
-    #[test]
-    fn test_country_code() {
-        let de = CountryCode { inner: "DE".into() };
-        assert_tokens(&de, &[Token::BorrowedStr("DE")]);
-        de.validate().unwrap();
-    }
-
-    #[test]
-    fn test_country_code_unknown_placeholder() {
-        let cc = CountryCode { inner: "XX".into() };
-        cc.validate().unwrap();
-    }
-
-    #[test]
-    fn test_country_code_invalid_length() {
-        serde_test::assert_de_tokens_error::<CountryCode>(
-            &[Token::BorrowedStr("C")],
-            r#"Validation error: Cannot parse String of length 1 into a "ivms101::messages::CountryCode""#,
-        );
-        serde_test::assert_de_tokens_error::<CountryCode>(
-            &[Token::BorrowedStr("CHE")],
-            r#"Validation error: Cannot parse String of length 3 into a "ivms101::messages::CountryCode""#,
-        );
-    }
-
-    #[test]
-    fn test_invalid_country_code() {
-        let invalid = CountryCode { inner: "RR".into() };
-        match_validation_error(&invalid, 3);
     }
 
     fn match_validation_error(val: &impl Validatable, code: u8) {
@@ -1173,7 +1132,7 @@ mod tests {
     #[test]
     fn test_c9_validation_error() {
         let mut ni = NationalIdentification::mock();
-        ni.country_of_issue = Some(CountryCode { inner: "CH".into() });
+        ni.country_of_issue = Some("CH".try_into().unwrap());
         let mut person = LegalPerson::mock();
         person.national_identification = Some(ni.clone());
         match_validation_error(&person, 9);
