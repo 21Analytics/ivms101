@@ -310,9 +310,9 @@ impl Validatable for NaturalPerson {
 pub struct NaturalPersonName {
     pub name_identifier: types::OneToN<NaturalPersonNameID>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub local_name_identifier: types::ZeroToN<LocalNaturalPersonNameID>,
+    pub local_name_identifier: types::ZeroToN<NaturalPersonNameID>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub phonetic_name_identifier: types::ZeroToN<LocalNaturalPersonNameID>,
+    pub phonetic_name_identifier: types::ZeroToN<NaturalPersonNameID>,
 }
 
 impl Validatable for NaturalPersonName {
@@ -333,16 +333,6 @@ impl Validatable for NaturalPersonName {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct NaturalPersonNameID {
-    pub primary_identifier: types::StringMax100,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub secondary_identifier: Option<types::StringMax100>,
-    pub name_identifier_type: NaturalPersonNameTypeCode,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-pub struct LocalNaturalPersonNameID {
     pub primary_identifier: types::StringMax100,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secondary_identifier: Option<types::StringMax100>,
@@ -660,9 +650,9 @@ impl Validatable for LegalPerson {
 pub struct LegalPersonName {
     pub name_identifier: types::OneToN<LegalPersonNameID>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub local_name_identifier: types::ZeroToN<LocalLegalPersonNameID>,
+    pub local_name_identifier: types::ZeroToN<LegalPersonNameID>,
     #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub phonetic_name_identifier: types::ZeroToN<LocalLegalPersonNameID>,
+    pub phonetic_name_identifier: types::ZeroToN<LegalPersonNameID>,
 }
 
 impl Validatable for LegalPersonName {
@@ -683,14 +673,6 @@ impl Validatable for LegalPersonName {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct LegalPersonNameID {
-    pub legal_person_name: types::StringMax100,
-    pub legal_person_name_identifier_type: LegalPersonNameTypeCode,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[serde(deny_unknown_fields)]
-pub struct LocalLegalPersonNameID {
     pub legal_person_name: types::StringMax100,
     pub legal_person_name_identifier_type: LegalPersonNameTypeCode,
 }
