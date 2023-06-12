@@ -1,4 +1,5 @@
 use crate::types;
+use lei::registration_authority::RegistrationAuthority;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -506,15 +507,6 @@ pub struct NationalIdentification {
     pub registration_authority: Option<RegistrationAuthority>,
 }
 
-impl Validatable for NationalIdentification {
-    fn validate(&self) -> Result<(), ValidationError> {
-        if let Some(ra) = &self.registration_authority {
-            ra.validate()?;
-        };
-        Ok(())
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
@@ -755,18 +747,6 @@ impl Validatable for CountryCode {
     }
 }
 
-crate::constrained_string!(RegistrationAuthority, |l| l == 8);
-
-impl Validatable for RegistrationAuthority {
-    fn validate(&self) -> Result<(), ValidationError> {
-        if !lei::registration_authority::is_valid_ra(&self.inner) {
-            return Err(
-                "Provided registration authority is not on the GLEIF list (IVMS101 C10)".into(),
-            );
-        }
-        Ok(())
-    }
-}
 #[derive(thiserror::Error, Debug, PartialEq, Eq)]
 #[error("Validation error: {0}")]
 pub struct ValidationError(String);
@@ -958,33 +938,6 @@ mod tests {
     fn test_invalid_country_code() {
         let invalid = CountryCode { inner: "RR".into() };
         match_validation_error(&invalid, 3);
-    }
-
-    #[test]
-    fn test_registration_authority_invalid_length() {
-        serde_test::assert_de_tokens_error::<RegistrationAuthority>(
-            &[Token::BorrowedStr("RA00009")],
-            r#"Validation error: Cannot parse String of length 7 into a "ivms101::messages::RegistrationAuthority""#,
-        );
-        serde_test::assert_de_tokens_error::<RegistrationAuthority>(
-            &[Token::BorrowedStr("RA0000945")],
-            r#"Validation error: Cannot parse String of length 9 into a "ivms101::messages::RegistrationAuthority""#,
-        );
-    }
-
-    #[test]
-    fn test_registration_authority_invalid_value() {
-        match_validation_error(
-            &<RegistrationAuthority as TryFrom<_>>::try_from("RA100094").unwrap(),
-            10,
-        );
-    }
-
-    #[test]
-    fn test_registration_authority() {
-        let ra: RegistrationAuthority = "RA000094".try_into().unwrap();
-        assert_tokens(&ra, &[Token::BorrowedStr("RA000094")]);
-        ra.validate().unwrap();
     }
 
     fn match_validation_error(val: &impl Validatable, code: u8) {
