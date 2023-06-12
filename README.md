@@ -8,11 +8,11 @@
 ## Example
 
 ```rust
-use ivms101::messages::Validatable;
+use ivms101::Validatable;
 
 fn main() {
     let person =
-        ivms101::messages::NaturalPerson::new("John", "Doe", Some("id-273934"), None).unwrap();
+        ivms101::NaturalPerson::new("John", "Doe", Some("id-273934"), None).unwrap();
     assert!(person.validate().is_ok());
 }
 ```

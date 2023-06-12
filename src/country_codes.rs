@@ -12,12 +12,12 @@ impl serde::Serialize for CountryCode {
 }
 
 impl TryFrom<&str> for CountryCode {
-    type Error = crate::messages::Error;
+    type Error = crate::Error;
     fn try_from(from: &str) -> Result<Self, Self::Error> {
         // XX represents an unknown state or entity
         // https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
         if iso3166_1::alpha2(from).is_none() && from != "XX" {
-            return Err(crate::messages::Error::InvalidCountryCode(from.to_string()));
+            return Err(crate::Error::InvalidCountryCode(from.to_string()));
         }
         Ok(Self { inner: from.into() })
     }

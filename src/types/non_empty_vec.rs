@@ -1,4 +1,4 @@
-use crate::messages::Error;
+use crate::Error;
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(into = "Vec<T>", try_from = "Vec<T>")]

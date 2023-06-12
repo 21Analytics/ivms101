@@ -47,7 +47,7 @@ macro_rules! constrained_string {
 
 #[cfg(test)]
 mod tests {
-    use crate::messages::Error;
+    use crate::Error;
 
     #[test]
     fn test_max_string() {
