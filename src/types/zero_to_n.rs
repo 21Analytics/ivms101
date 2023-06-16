@@ -28,6 +28,14 @@ pub enum ZeroToN<T> {
 }
 
 impl<T> ZeroToN<T> {
+    /// Indicates whether any items are present.
+    ///
+    /// ```
+    /// use ivms101::ZeroToN;
+    ///
+    /// assert!(!ZeroToN::from(Some(8)).is_empty());
+    /// assert!(ZeroToN::<u8>::from(None).is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         match self {
             ZeroToN::None => true,
@@ -36,6 +44,15 @@ impl<T> ZeroToN<T> {
         }
     }
 
+    /// Returns a reference to the first element if there is one,
+    /// and `None` otherwise.
+    ///
+    /// ```
+    /// use ivms101::ZeroToN;
+    ///
+    /// assert_eq!(ZeroToN::from(Some(8)).first(), Some(&8));
+    /// assert_eq!(ZeroToN::<u8>::from(None).first(), None);
+    /// ```
     pub fn first(&self) -> Option<&T> {
         match self {
             ZeroToN::None => None,

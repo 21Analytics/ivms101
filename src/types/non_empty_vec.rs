@@ -1,5 +1,6 @@
 use crate::Error;
 
+/// A vector that is guaranteed to have at least one element.
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(into = "Vec<T>", try_from = "Vec<T>")]
 pub struct NonEmptyVec<T: Clone> {

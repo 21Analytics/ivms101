@@ -10,6 +10,13 @@ pub enum OneToN<T: Clone> {
 }
 
 impl<T: Clone> OneToN<T> {
+    /// Returns a reference to the first element.
+    ///
+    /// ```
+    /// use ivms101::OneToN;
+    ///
+    /// assert_eq!(*OneToN::from(8).first(), 8);
+    /// ```
     pub fn first(&self) -> &T {
         match self {
             OneToN::One(t) => t,

@@ -1,3 +1,4 @@
+#[doc(hidden)]
 #[macro_export]
 macro_rules! constrained_string {
     ($newtype:ident, $len_check:expr) => {

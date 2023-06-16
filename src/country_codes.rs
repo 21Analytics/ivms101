@@ -30,6 +30,10 @@ impl CountryCode {
     }
 }
 
+/// Retrieves the full name of the country given a two-letter
+/// ISO 3166-1 alpha-2 country code.
+///
+/// Unknown country codes are returned back to the caller.
 #[must_use]
 #[allow(clippy::too_many_lines)]
 pub fn country(country_code: &str) -> &str {
