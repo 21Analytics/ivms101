@@ -118,7 +118,7 @@ impl OriginatingVASP {
                 name: LegalPersonName {
                     name_identifier: LegalPersonNameID {
                         legal_person_name: name.try_into()?,
-                        legal_person_name_identifier_type: LegalPersonNameTypeCode::Legl,
+                        legal_person_name_identifier_type: LegalPersonNameTypeCode::Legal,
                     }
                     .into(),
                     local_name_identifier: None.into(),
@@ -128,7 +128,7 @@ impl OriginatingVASP {
                 customer_identification: None,
                 national_identification: Some(NationalIdentification {
                     national_identifier: lei.to_string().as_str().try_into().unwrap(),
-                    national_identifier_type: NationalIdentifierTypeCode::Leix,
+                    national_identifier_type: NationalIdentifierTypeCode::LegalEntityIdentifier,
                     country_of_issue: None,
                     registration_authority: None,
                 }),
@@ -251,7 +251,7 @@ impl NaturalPerson {
                 name_identifier: NaturalPersonNameID {
                     primary_identifier: last_name.try_into()?,
                     secondary_identifier: Some(first_name.try_into()?),
-                    name_identifier_type: NaturalPersonNameTypeCode::Legl,
+                    name_identifier_type: NaturalPersonNameTypeCode::LegalName,
                 }
                 .into(),
                 local_name_identifier: None.into(),
@@ -327,7 +327,7 @@ impl Validatable for NaturalPersonName {
             .name_identifier
             .clone()
             .into_iter()
-            .any(|ni| ni.name_identifier_type == NaturalPersonNameTypeCode::Legl);
+            .any(|ni| ni.name_identifier_type == NaturalPersonNameTypeCode::LegalName);
         if !has_legl {
             return Err("Natural person must have a legal name id (IVMS101 C6)".into());
         }
@@ -390,7 +390,7 @@ impl Address {
         country: &str,
     ) -> Result<Self, Error> {
         Ok(Self {
-            address_type: AddressTypeCode::Home,
+            address_type: AddressTypeCode::Residential,
             department: None,
             sub_department: None,
             street_name: street.map(TryInto::try_into).transpose()?,
@@ -538,7 +538,7 @@ impl LegalPerson {
             name: LegalPersonName {
                 name_identifier: LegalPersonNameID {
                     legal_person_name: name.try_into()?,
-                    legal_person_name_identifier_type: LegalPersonNameTypeCode::Legl,
+                    legal_person_name_identifier_type: LegalPersonNameTypeCode::Legal,
                 }
                 .into(),
                 local_name_identifier: None.into(),
@@ -548,7 +548,7 @@ impl LegalPerson {
             customer_identification: Some(customer_identification.try_into()?),
             national_identification: Some(NationalIdentification {
                 national_identifier: lei.to_string().as_str().try_into().unwrap(),
-                national_identifier_type: NationalIdentifierTypeCode::Leix,
+                national_identifier_type: NationalIdentifierTypeCode::LegalEntityIdentifier,
                 country_of_issue: None,
                 registration_authority: None,
             }),
@@ -586,7 +586,7 @@ impl Validatable for LegalPerson {
             .geographic_address
             .clone()
             .into_iter()
-            .any(|addr| addr.address_type == AddressTypeCode::Geog);
+            .any(|addr| addr.address_type == AddressTypeCode::Residential);
         if !has_geog
             && self.national_identification.is_none()
             && self.customer_identification.is_none()
@@ -599,16 +599,16 @@ impl Validatable for LegalPerson {
         if let Some(ni) = &self.national_identification {
             if !matches!(
                 ni.national_identifier_type,
-                NationalIdentifierTypeCode::Raid
-                    | NationalIdentifierTypeCode::Misc
-                    | NationalIdentifierTypeCode::Leix
-                    | NationalIdentifierTypeCode::Txid
+                NationalIdentifierTypeCode::RegistrationAuthorityIdentifier
+                    | NationalIdentifierTypeCode::Unspecified
+                    | NationalIdentifierTypeCode::LegalEntityIdentifier
+                    | NationalIdentifierTypeCode::TaxIdentificationNumber
             ) {
                 return Err("Legal person must have a 'RAID', 'MISC', 'LEIX' or 'TXID' identification (IVMS101 C7)".into());
             }
         };
         if let Some(ni) = &self.national_identification {
-            if ni.national_identifier_type == NationalIdentifierTypeCode::Leix {
+            if ni.national_identifier_type == NationalIdentifierTypeCode::LegalEntityIdentifier {
                 if let Err(e) = lei::LEI::try_from(ni.national_identifier.as_str()) {
                     return Err(format!("Invalid LEI: {e} (IVMS101 C11)").as_str().into());
                 }
@@ -624,12 +624,12 @@ impl Validatable for LegalPerson {
                 if ni.country_of_issue.is_some() {
                     return Err("Legal person must not have a country of issue (IVMS101 C9)".into());
                 }
-                if ni.national_identifier_type != NationalIdentifierTypeCode::Leix
+                if ni.national_identifier_type != NationalIdentifierTypeCode::LegalEntityIdentifier
                     && ni.registration_authority.is_none()
                 {
                     return Err("Legal person must specify registration authority for non-'LEIX' identification (IVMS101 C9)".into());
                 }
-                if ni.national_identifier_type == NationalIdentifierTypeCode::Leix
+                if ni.national_identifier_type == NationalIdentifierTypeCode::LegalEntityIdentifier
                     && ni.registration_authority.is_some()
                 {
                     return Err("Legal person must not specify registration authority for 'LEIX' identification (IVMS101 C9)".into());
@@ -658,7 +658,7 @@ impl Validatable for LegalPersonName {
             .name_identifier
             .clone()
             .into_iter()
-            .any(|ni| ni.legal_person_name_identifier_type == LegalPersonNameTypeCode::Legl);
+            .any(|ni| ni.legal_person_name_identifier_type == LegalPersonNameTypeCode::Legal);
         if !has_legl {
             return Err("Legal person must have a legal name id (IVMS101 C5)".into());
         }
@@ -691,46 +691,63 @@ impl Validatable for IntermediaryVASP {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
 pub enum NaturalPersonNameTypeCode {
-    Alia, // Alias name
-    Birt, // Name at birth
-    Maid, // Maiden name
-    Legl, // Legal name
-    Misc, // Unspecified
+    #[serde(rename = "ALIA")]
+    Alias,
+    #[serde(rename = "BIRT")]
+    NameAtBirth,
+    #[serde(rename = "MAID")]
+    MaidenName,
+    #[serde(rename = "LEGL")]
+    LegalName,
+    #[serde(rename = "MISC")]
+    Unspecified,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
 pub enum LegalPersonNameTypeCode {
-    Legl, // Legal name
-    Shrt, // Short name
-    Trad, // Trading name
+    #[serde(rename = "LEGL")]
+    Legal,
+    #[serde(rename = "SHRT")]
+    Short,
+    #[serde(rename = "TRAD")]
+    Trading,
 }
 
 type Date = chrono::NaiveDate;
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
 pub enum AddressTypeCode {
-    Home, // Residential
-    Bizz, // Business
-    Geog, // Geographic
+    #[serde(rename = "HOME")]
+    Residential,
+    #[serde(rename = "BIZZ")]
+    Business,
+    #[serde(rename = "GEOG")]
+    Geographic,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-#[serde(rename_all = "UPPERCASE")]
 pub enum NationalIdentifierTypeCode {
-    Arnu, // Alien registration number
-    Ccpt, // Passport number
-    Raid, // Registration authority identifier
-    Drlc, // Driver license number
-    Fiin, // Foreign investment identity number
-    Txid, // Tax identification number
-    Socs, // Social security number
-    Idcd, // Identity card number
-    Leix, // Legal Entity Identifier
-    Misc, // Unspecified
+    #[serde(rename = "ARNU")]
+    AlienRegistrationNumber,
+    #[serde(rename = "CCPT")]
+    PassportNumber,
+    #[serde(rename = "RAID")]
+    RegistrationAuthorityIdentifier,
+    #[serde(rename = "DRLC")]
+    DriverLicenseNumber,
+    #[serde(rename = "FIIN")]
+    ForeignInvestmentIdentityNumber,
+    #[serde(rename = "TXID")]
+    TaxIdentificationNumber,
+    #[serde(rename = "SOCS")]
+    SocialSecurityNumber,
+    #[serde(rename = "IDCD")]
+    IdentityCardNumber,
+    #[serde(rename = "LEIX")]
+    LegalEntityIdentifier,
+    #[serde(rename = "MISC")]
+    Unspecified,
 }
 
 pub trait Validatable {
@@ -795,7 +812,7 @@ mod tests {
         fn mock() -> Self {
             Self {
                 legal_person_name: "Company A".try_into().unwrap(),
-                legal_person_name_identifier_type: LegalPersonNameTypeCode::Legl,
+                legal_person_name_identifier_type: LegalPersonNameTypeCode::Legal,
             }
         }
     }
@@ -804,7 +821,7 @@ mod tests {
         fn mock() -> Self {
             Self {
                 national_identifier: "id".try_into().unwrap(),
-                national_identifier_type: NationalIdentifierTypeCode::Misc,
+                national_identifier_type: NationalIdentifierTypeCode::Unspecified,
                 country_of_issue: None,
                 registration_authority: Some("RA000001".try_into().unwrap()),
             }
@@ -814,7 +831,7 @@ mod tests {
     impl Address {
         fn mock() -> Self {
             Self {
-                address_type: AddressTypeCode::Geog,
+                address_type: AddressTypeCode::Residential,
                 department: None,
                 sub_department: None,
                 street_name: None,
@@ -839,7 +856,7 @@ mod tests {
             Self {
                 primary_identifier: "Engels".try_into().unwrap(),
                 secondary_identifier: Some("Friedrich".try_into().unwrap()),
-                name_identifier_type: NaturalPersonNameTypeCode::Legl,
+                name_identifier_type: NaturalPersonNameTypeCode::LegalName,
             }
         }
     }
@@ -874,28 +891,28 @@ mod tests {
     #[test]
     fn test_type_codes() {
         assert_tokens(
-            &NaturalPersonNameTypeCode::Alia,
+            &NaturalPersonNameTypeCode::Alias,
             &[Token::UnitVariant {
                 name: "NaturalPersonNameTypeCode",
                 variant: "ALIA",
             }],
         );
         assert_tokens(
-            &LegalPersonNameTypeCode::Legl,
+            &LegalPersonNameTypeCode::Legal,
             &[Token::UnitVariant {
                 name: "LegalPersonNameTypeCode",
                 variant: "LEGL",
             }],
         );
         assert_tokens(
-            &AddressTypeCode::Bizz,
+            &AddressTypeCode::Business,
             &[Token::UnitVariant {
                 name: "AddressTypeCode",
                 variant: "BIZZ",
             }],
         );
         assert_tokens(
-            &NationalIdentifierTypeCode::Arnu,
+            &NationalIdentifierTypeCode::AlienRegistrationNumber,
             &[Token::UnitVariant {
                 name: "NationalIdentifierTypeCode",
                 variant: "ARNU",
@@ -1030,7 +1047,7 @@ mod tests {
         let mut legal = LegalPersonName::mock();
         legal.name_identifier = LegalPersonNameID {
             legal_person_name: "Company A".try_into().unwrap(),
-            legal_person_name_identifier_type: LegalPersonNameTypeCode::Shrt,
+            legal_person_name_identifier_type: LegalPersonNameTypeCode::Short,
         }
         .into();
         match_validation_error(&legal, 5);
@@ -1047,7 +1064,7 @@ mod tests {
         let mut name = NaturalPersonName::mock();
         name.name_identifier = NaturalPersonNameID {
             primary_identifier: "Karl".try_into().unwrap(),
-            name_identifier_type: NaturalPersonNameTypeCode::Alia,
+            name_identifier_type: NaturalPersonNameTypeCode::Alias,
             secondary_identifier: None,
         }
         .into();
@@ -1060,7 +1077,7 @@ mod tests {
         name.name_identifier = NaturalPersonNameID {
             primary_identifier: "Emil Steinberger".try_into().unwrap(),
             secondary_identifier: None,
-            name_identifier_type: NaturalPersonNameTypeCode::Legl,
+            name_identifier_type: NaturalPersonNameTypeCode::LegalName,
         }
         .into();
         name.validate().unwrap();
@@ -1072,12 +1089,12 @@ mod tests {
         let mut id = NationalIdentification::mock();
 
         for code in [
-            NationalIdentifierTypeCode::Arnu,
-            NationalIdentifierTypeCode::Ccpt,
-            NationalIdentifierTypeCode::Drlc,
-            NationalIdentifierTypeCode::Fiin,
-            NationalIdentifierTypeCode::Idcd,
-            NationalIdentifierTypeCode::Socs,
+            NationalIdentifierTypeCode::AlienRegistrationNumber,
+            NationalIdentifierTypeCode::PassportNumber,
+            NationalIdentifierTypeCode::DriverLicenseNumber,
+            NationalIdentifierTypeCode::ForeignInvestmentIdentityNumber,
+            NationalIdentifierTypeCode::IdentityCardNumber,
+            NationalIdentifierTypeCode::SocialSecurityNumber,
         ] {
             id.national_identifier_type = code;
             person.national_identification = Some(id.clone());
@@ -1090,14 +1107,14 @@ mod tests {
         let mut person = LegalPerson::mock();
 
         for code in [
-            NationalIdentifierTypeCode::Leix,
-            NationalIdentifierTypeCode::Misc,
-            NationalIdentifierTypeCode::Raid,
-            NationalIdentifierTypeCode::Txid,
+            NationalIdentifierTypeCode::LegalEntityIdentifier,
+            NationalIdentifierTypeCode::Unspecified,
+            NationalIdentifierTypeCode::RegistrationAuthorityIdentifier,
+            NationalIdentifierTypeCode::TaxIdentificationNumber,
         ] {
             let mut id = NationalIdentification::mock();
             id.national_identifier_type = code.clone();
-            if code == NationalIdentifierTypeCode::Leix {
+            if code == NationalIdentifierTypeCode::LegalEntityIdentifier {
                 // Use a valid LEI to make C11 pass
                 id.national_identifier = "2594007XIACKNMUAW223".try_into().unwrap();
                 // Make C9 pass
@@ -1141,13 +1158,13 @@ mod tests {
         person.national_identification = Some(ni.clone());
         match_validation_error(&person, 9);
 
-        ni.national_identifier_type = NationalIdentifierTypeCode::Leix;
+        ni.national_identifier_type = NationalIdentifierTypeCode::LegalEntityIdentifier;
         // Use a valid LEI to make C11 pass
         ni.national_identifier = "2594007XIACKNMUAW223".try_into().unwrap();
         person.national_identification = Some(ni.clone());
         match_validation_error(&person, 9);
 
-        ni.national_identifier_type = NationalIdentifierTypeCode::Misc;
+        ni.national_identifier_type = NationalIdentifierTypeCode::Unspecified;
         ni.registration_authority = None;
         person.national_identification = Some(ni);
         match_validation_error(&person, 9);
@@ -1164,7 +1181,7 @@ mod tests {
         person.validate().unwrap();
 
         ni.registration_authority = None;
-        ni.national_identifier_type = NationalIdentifierTypeCode::Leix;
+        ni.national_identifier_type = NationalIdentifierTypeCode::LegalEntityIdentifier;
         // Use a valid LEI to make C11 pass
         ni.national_identifier = "2594007XIACKNMUAW223".try_into().unwrap();
         person.national_identification = Some(ni);
@@ -1178,7 +1195,7 @@ mod tests {
         let mut person = LegalPerson::mock();
         let mut ni = NationalIdentification::mock();
         ni.registration_authority = None;
-        ni.national_identifier_type = NationalIdentifierTypeCode::Leix;
+        ni.national_identifier_type = NationalIdentifierTypeCode::LegalEntityIdentifier;
         ni.national_identifier = "invalid-lei".try_into().unwrap();
         person.national_identification = Some(ni);
         match_validation_error(&person, 11);
@@ -1189,7 +1206,7 @@ mod tests {
         let mut person = LegalPerson::mock();
         let mut ni = NationalIdentification::mock();
         ni.registration_authority = None;
-        ni.national_identifier_type = NationalIdentifierTypeCode::Leix;
+        ni.national_identifier_type = NationalIdentifierTypeCode::LegalEntityIdentifier;
         ni.national_identifier = "2594007XIACKNMUAW223".try_into().unwrap();
         person.national_identification = Some(ni);
         person.validate().unwrap();
