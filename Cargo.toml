@@ -9,7 +9,7 @@ description = "A library to handle Intervasp Messaging Standard Payloads"
 documentation = "https://docs.rs/ivms101/"
 homepage = "https://21analytics.ch"
 repository = "https://gitlab.com/21analytics/ivms101"
-keywords = ["ivms101", "travel-rule"]
+keywords = ["ivms101", "travel-rule", "trp"]
 categories = ["finance"]
 
 [dependencies]
