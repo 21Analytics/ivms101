@@ -1,10 +1,7 @@
 mod constrained_string;
 mod non_empty_vec;
-mod one_to_n;
-mod zero_to_n;
-
-pub(crate) use one_to_n::OneToN;
-pub(crate) use zero_to_n::ZeroToN;
+pub(crate) mod one_to_n;
+pub(crate) mod zero_to_n;
 
 use crate::Error;
 crate::constrained_string!(StringMax16, |l| l <= 16);

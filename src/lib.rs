@@ -1,4 +1,5 @@
 pub use country_codes::{country, CountryCode};
+pub use types::{one_to_n::OneToN, zero_to_n::ZeroToN};
 
 mod country_codes;
 mod types;
@@ -43,9 +44,9 @@ impl Validatable for IVMS101 {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct Originator {
-    pub originator_persons: types::OneToN<Person>,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub account_number: types::ZeroToN<types::StringMax100>,
+    pub originator_persons: OneToN<Person>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub account_number: ZeroToN<types::StringMax100>,
 }
 
 impl Validatable for Originator {
@@ -80,9 +81,9 @@ impl Originator {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct Beneficiary {
-    pub beneficiary_persons: types::OneToN<Person>,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub account_number: types::ZeroToN<types::StringMax100>,
+    pub beneficiary_persons: OneToN<Person>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub account_number: ZeroToN<types::StringMax100>,
 }
 
 impl Validatable for Beneficiary {
@@ -123,7 +124,7 @@ impl OriginatingVASP {
                     local_name_identifier: None.into(),
                     phonetic_name_identifier: None.into(),
                 },
-                geographic_address: types::ZeroToN::None,
+                geographic_address: ZeroToN::None,
                 customer_identification: None,
                 national_identification: Some(NationalIdentification {
                     national_identifier: lei.to_string().as_str().try_into().unwrap(),
@@ -225,9 +226,9 @@ impl Validatable for Person {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct NaturalPerson {
-    pub name: types::OneToN<NaturalPersonName>,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub geographic_address: types::ZeroToN<Address>,
+    pub name: OneToN<NaturalPersonName>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub geographic_address: ZeroToN<Address>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub national_identification: Option<NationalIdentification>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -313,11 +314,11 @@ impl Validatable for NaturalPerson {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct NaturalPersonName {
-    pub name_identifier: types::OneToN<NaturalPersonNameID>,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub local_name_identifier: types::ZeroToN<NaturalPersonNameID>,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub phonetic_name_identifier: types::ZeroToN<NaturalPersonNameID>,
+    pub name_identifier: OneToN<NaturalPersonNameID>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub local_name_identifier: ZeroToN<NaturalPersonNameID>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub phonetic_name_identifier: ZeroToN<NaturalPersonNameID>,
 }
 
 impl Validatable for NaturalPersonName {
@@ -374,8 +375,8 @@ pub struct Address {
     pub district_name: Option<types::StringMax35>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub country_sub_division: Option<types::StringMax35>,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub address_line: types::ZeroToN<types::StringMax70>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub address_line: ZeroToN<types::StringMax70>,
     pub country: CountryCode,
 }
 
@@ -516,8 +517,8 @@ pub struct NationalIdentification {
 #[serde(deny_unknown_fields)]
 pub struct LegalPerson {
     pub name: LegalPersonName,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub geographic_address: types::ZeroToN<Address>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub geographic_address: ZeroToN<Address>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub customer_identification: Option<types::StringMax50>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -644,11 +645,11 @@ impl Validatable for LegalPerson {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 pub struct LegalPersonName {
-    pub name_identifier: types::OneToN<LegalPersonNameID>,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub local_name_identifier: types::ZeroToN<LegalPersonNameID>,
-    #[serde(default, skip_serializing_if = "types::ZeroToN::is_empty")]
-    pub phonetic_name_identifier: types::ZeroToN<LegalPersonNameID>,
+    pub name_identifier: OneToN<LegalPersonNameID>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub local_name_identifier: ZeroToN<LegalPersonNameID>,
+    #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
+    pub phonetic_name_identifier: ZeroToN<LegalPersonNameID>,
 }
 
 impl Validatable for LegalPersonName {

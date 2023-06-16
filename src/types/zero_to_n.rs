@@ -2,7 +2,7 @@
 /// field during deserialization. It is used in the following way:
 ///
 ///```
-/// use ivms101::types::ZeroToN;
+/// use ivms101::ZeroToN;
 /// #[derive(serde::Serialize, serde::Deserialize)]
 /// struct Foo {
 ///     #[serde(default, skip_serializing_if = "ZeroToN::is_empty")]
@@ -28,7 +28,7 @@ pub enum ZeroToN<T> {
 }
 
 impl<T> ZeroToN<T> {
-    pub(crate) fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         match self {
             ZeroToN::None => true,
             ZeroToN::One(_) => false,
@@ -36,7 +36,7 @@ impl<T> ZeroToN<T> {
         }
     }
 
-    pub(crate) fn first(&self) -> Option<&T> {
+    pub fn first(&self) -> Option<&T> {
         match self {
             ZeroToN::None => None,
             ZeroToN::One(t) => Some(t),
