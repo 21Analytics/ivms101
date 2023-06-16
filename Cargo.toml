@@ -14,7 +14,6 @@ categories = ["finance"]
 
 [dependencies]
 chrono = { version = "0.4.24", default-features = false, features = [ "serde", "clock" ] }
-iso3166-1 = "1.0"
 lei = { path = "../lei", package = "leim" }
 serde = { version = "1.0.163", features = [ "derive" ] }
 thiserror = "1.0.40"

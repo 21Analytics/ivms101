@@ -14,9 +14,7 @@ impl serde::Serialize for CountryCode {
 impl TryFrom<&str> for CountryCode {
     type Error = crate::Error;
     fn try_from(from: &str) -> Result<Self, Self::Error> {
-        // XX represents an unknown state or entity
-        // https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-        if iso3166_1::alpha2(from).is_none() && from != "XX" {
+        if country(from).is_none() {
             return Err(crate::Error::InvalidCountryCode(from.to_string()));
         }
         Ok(Self { inner: from.into() })
@@ -33,10 +31,10 @@ impl CountryCode {
 /// Retrieves the full name of the country given a two-letter
 /// ISO 3166-1 alpha-2 country code.
 ///
-/// Unknown country codes are returned back to the caller.
+/// Returns `None` if the country code is unknown.
 #[must_use]
 #[allow(clippy::too_many_lines)]
-pub fn country(country_code: &str) -> &str {
+pub fn country(country_code: &str) -> Option<&str> {
     COUNTRY_CODES
         .get_or_init(|| {
             [
@@ -289,9 +287,8 @@ pub fn country(country_code: &str) -> &str {
             ]
             .into()
         })
-        .get(country_code)
+        .get(country_code.to_lowercase().as_str())
         .copied()
-        .unwrap_or(country_code)
 }
 
 static COUNTRY_CODES: std::sync::OnceLock<std::collections::HashMap<&'static str, &'static str>> =
@@ -306,11 +303,6 @@ mod tests {
     fn test_country_code() {
         let de = CountryCode { inner: "DE".into() };
         assert_tokens(&de, &[Token::BorrowedStr("DE")]);
-    }
-
-    #[test]
-    fn test_country_code_unknown_placeholder() {
-        CountryCode::try_from("XX").unwrap();
     }
 
     #[test]

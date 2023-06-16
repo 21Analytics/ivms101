@@ -570,7 +570,7 @@ pub fn format_address(
     write!(
         f,
         "{town}, {}",
-        country(country_code.to_lowercase().as_str())
+        country(country_code.to_lowercase().as_str()).unwrap_or(country_code)
     )
 }
 
